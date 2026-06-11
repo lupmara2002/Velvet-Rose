@@ -1,0 +1,12 @@
+# Local Netlify folder
+C
+.env
+**/test-data/
+
+**/node_modules
+
+# Local Netlify folder
+.netlify
+
+scripts
+artifacts

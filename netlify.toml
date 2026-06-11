@@ -1,0 +1,22 @@
+[build]
+  command = "npm install --prefix client && npm run build --prefix client"
+  publish = "client/build"
+  functions = "netlify-functions/functions"
+
+[dev]
+  functions = "netlify-functions/functions"
+  publish = "client/build"
+  targetPort = 3000
+
+[functions]
+  directory = "netlify-functions/functions"
+  included_files = ["netlify-functions/functions/fonts/**"]
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+SECRETS_SCAN_OMIT_KEYS   = "REACT_APP_ENVIRONMENT,REACT_APP_API_BASE_URL"
+SECRETS_SCAN_OMIT_PATHS  = "client/.gitignore,client/README.md,client/build/**"
