@@ -20,14 +20,12 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Load guest cart on mount
   useEffect(() => {
     const localItems = loadLocalCart();
     const count = localItems.reduce((sum, i) => sum + i.quantity, 0);
     setCart({ items: localItems, itemCount: count });
   }, []);
 
-  // Fetch server cart
   const fetchServerCart = useCallback(async () => {
     if (!token) return;
     try {
@@ -42,7 +40,6 @@ export const CartProvider = ({ children }) => {
     }
   }, [baseUrl, token]);
 
-  // Refresh cart (server or local)
   const refreshCart = useCallback(() => {
     if (token) {
       fetchServerCart();
@@ -53,7 +50,6 @@ export const CartProvider = ({ children }) => {
     }
   }, [token, fetchServerCart]);
 
-  // Sync token changes, merge local into server on login
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
@@ -77,7 +73,6 @@ export const CartProvider = ({ children }) => {
     }
   }, [token, baseUrl, fetchServerCart]);
 
-  // Add or update items in cart
   const addToCart = async (productId, quantity = 1) => {
     if (token) {
       try {
@@ -104,7 +99,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Update quantity or remove item for guest or server
   const updateQuantity = (productId, newQuantity) => {
     if (token) {
       axios.patch(
@@ -130,7 +124,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-    // On token change (login or logout), refresh cart
   useEffect(() => {
   }, [token, refreshCart]);
 

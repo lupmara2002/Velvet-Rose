@@ -1,4 +1,3 @@
-// netlify-functions/register.js
 const connectToDatabase = require('../db');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');

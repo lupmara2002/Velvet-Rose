@@ -13,12 +13,10 @@ const Navbar = () => {
   const { cart, refreshCart, token, setToken } = useContext(CartContext);
   const navigate = useNavigate();
 
-  // Refresh badge on auth changes
   useEffect(() => {
     refreshCart();
   }, [token, refreshCart]);
 
-  // Determine admin status
   let isAdmin = false;
   if (token) {
     try {
@@ -30,11 +28,9 @@ const Navbar = () => {
   }
 
   const handleLogout = () => {
-    // Clear auth token and guest cart
     setToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('local_cart');
-    // Navigate to login; badge will reset via effect
     navigate('/login');
   };
 

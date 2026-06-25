@@ -23,7 +23,6 @@ const LandingPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const debounceTimer = useRef(null);
 
-  // Debounce search input by 400ms
   useEffect(() => {
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearch(searchInput);
@@ -31,7 +30,6 @@ const LandingPage = () => {
     return () => clearTimeout(debounceTimer.current);
   }, [searchInput]);
 
-  // Build filters and include sort order + search
   const filters = useMemo(() => ({
     category: searchParams.get('category') || '',
     brand: searchParams.get('brand') || '',
@@ -241,7 +239,6 @@ const LandingPage = () => {
             Featured Products
           </Typography>
 
-          {/* Search Bar */}
           <Box sx={{ display: 'flex', justifyContent: 'center', px: 3, mt: 1, mb: 1 }}>
             <TextField
               placeholder="Search products…"
@@ -278,7 +275,6 @@ const LandingPage = () => {
             />
           </Box>
 
-          {/* Sort Control – aligned with the first card column */}
           <Box
             sx={{
               display: 'grid',

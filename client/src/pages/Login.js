@@ -1,4 +1,3 @@
-// client/src/pages/Login.js
 import React, { useContext, useState } from 'react';
 import { Container, Paper, Box, Typography, TextField, Button, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +10,6 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   
-  // Use an environment variable for the API base URL if needed
   const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
 
   const handleChange = (e) => {
@@ -24,14 +22,12 @@ const Login = () => {
     try {
       const response = await axios.post(`${baseUrl}/login`, formData);
       const { admin, token } = response.data;
-      // Save the token as needed (e.g., localStorage)
       localStorage.setItem('token', token);
       setToken(token);
-      // Redirect based on the admin flag
       if (admin) {
-        navigate('/admin'); // Admin dashboard route
+        navigate('/admin'); 
       } else {
-        navigate('/'); // Regular landing page
+        navigate('/'); 
       }
     } catch (err) {
       console.error('Login error:', err);

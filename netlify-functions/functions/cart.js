@@ -8,8 +8,6 @@ require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const cartHandler = async (event, context) => {
-    // Verify that an Authorization header is provided
-    console.log('headers: ', event.headers)
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader) {
         return {
@@ -28,10 +26,8 @@ const cartHandler = async (event, context) => {
         };
     }
 
-    // Use the decoded token's userId
     const userId = decoded.userId;
 
-    // Ensure database connection is established
     try {
         await connectToDatabase();
     } catch (dbError) {
@@ -42,7 +38,6 @@ const cartHandler = async (event, context) => {
         };
     }
 
-    // Switch based on HTTP method
     switch (event.httpMethod) {
         case 'GET': {
             let cart = await Cart.findOne({ userId }).populate('items');
@@ -75,7 +70,6 @@ const cartHandler = async (event, context) => {
                 };
             }
 
-            // Stock validation
             const product = await Product.findById(data.productId);
             if (!product) {
                 return {
@@ -95,7 +89,6 @@ const cartHandler = async (event, context) => {
                 cart = new Cart({ userId, items: [] });
             }
 
-            // Check if the product already exists in the cart
             const index = cart.items.findIndex(
                 item => item.product.toString() === data.productId
             );
@@ -115,14 +108,11 @@ const cartHandler = async (event, context) => {
             }
 
             if (index > -1) {
-                // Increase the quantity if product exists
                 cart.items[index].quantity += data.quantity;
             } else {
-                // Otherwise, add the product to the cart
                 cart.items.push({ product: data.productId, quantity: data.quantity });
             }
 
-            // Update the total item count
             cart.itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
             await cart.save();
 
@@ -168,10 +158,8 @@ const cartHandler = async (event, context) => {
             }
 
             if (data.quantity <= 0) {
-                // Remove the item if quantity is 0
                 cart.items.splice(index, 1);
             } else {
-                // Stock validation on quantity update
                 const patchProduct = await Product.findById(data.productId);
                 if (patchProduct && data.quantity > patchProduct.stock) {
                     return {
@@ -182,11 +170,9 @@ const cartHandler = async (event, context) => {
                         }),
                     };
                 }
-                // Update the quantity
                 cart.items[index].quantity = data.quantity;
             }
 
-            // Recalculate and update the total item count.
             cart.itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
             await cart.save();
 

@@ -1,4 +1,3 @@
-// netlify-functions/models/Product.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -7,7 +6,7 @@ const ProductSchema = new Schema({
   price: { type: Number, required: true },
   category: { type: String, required: true },
   brand: { type: String, required: true },
-  images: [{ type: String }], // Updated to store multiple images
+  images: [{ type: String }], 
   description: { type: String },
   stock: { type: Number, required: true, default: 10, min: 0 },
 }, { timestamps: true });

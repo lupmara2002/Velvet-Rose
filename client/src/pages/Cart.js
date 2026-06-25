@@ -41,7 +41,6 @@ const Cart = () => {
   const items = useMemo(() => cart.items || [], [cart.items]);
   const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
 
-  // Returns how many free units this cart item earns based on active offers
   const getFreeQty = (item) => {
     if (!item.product) return 0;
     const offer = offers.find((o) => o.active && o.category === item.product.category);
@@ -49,7 +48,6 @@ const Cart = () => {
     return Math.floor(item.quantity / offer.buyQty) * offer.freeQty;
   };
 
-  // Load product details
   useEffect(() => {
     const loadProducts = async () => {
       if (!items.length) {
@@ -86,7 +84,6 @@ const Cart = () => {
     0
   );
 
-  // Checkout logic
   const handleCheckout = async (checkoutData) => {
     try {
       const decoded = jwtDecode(token);
@@ -336,7 +333,6 @@ const Cart = () => {
         </>
       )}
 
-      {/* Login/Register Prompt */}
       <Dialog open={loginPromptOpen} onClose={() => setLoginPromptOpen(false)}>
         <DialogTitle>Please Log In or Register</DialogTitle>
         <DialogContent>
@@ -349,14 +345,12 @@ const Cart = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Checkout Form Dialog */}
       <CheckoutForm
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
         onCheckout={handleCheckout}
       />
 
-      {/* Confirm Deletion Dialog */}
       <Dialog open={confirmDelete.open} onClose={() => setConfirmDelete({open:false,item:null})}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -370,7 +364,6 @@ const Cart = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Stock Warning Snackbar */}
       <Snackbar
         open={!!stockWarning}
         autoHideDuration={3000}

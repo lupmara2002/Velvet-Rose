@@ -1,13 +1,3 @@
-/* netlify/functions/stripeWebhook.js */
-
-/**
- * Stripe Webhook handler – production‑ready
- * -----------------------------------------
- * Handles `checkout.session.completed` events, verifies the signature, updates
- * the corresponding Order to `paid`, clears the user's Cart, and sends a
- * confirmation e‑mail via Mailjet.
- */
-
 const stripe   = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const connectToDatabase = require('../db');
 const Order    = require('../models/Order');
@@ -17,11 +7,8 @@ const CategoryOffer = require('../models/CategoryOffer');
 const Mailjet  = require('node-mailjet');
 const generateInvoicePdf = require('../generateInvoicePdf');
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; // whsec_...
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; 
 
-/* -------------------------------------------------------------------------- */
-/* Helper: build receipt lines including free bonus items                     */
-/* -------------------------------------------------------------------------- */
 function buildReceiptLines(products, offers) {
   const lines = [];
   for (const item of products) {
@@ -42,20 +29,15 @@ function buildReceiptLines(products, offers) {
   return lines;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Helper: send confirmation e-mail                                           */
-/* -------------------------------------------------------------------------- */
 async function sendConfirmationEmail(order, receiptLines) {
   const mailjet = new Mailjet({
     apiKey:   process.env.MAILJET_PUBLIC_API_KEY,
     apiSecret: process.env.MAILJET_PRIVATE_API_KEY,
   });
 
-  // Generate the invoice PDF as a Buffer
   const pdfBuffer = await generateInvoicePdf(order, receiptLines);
   const pdfBase64 = pdfBuffer.toString('base64');
 
-  // Build product rows for the HTML body
   const productRows = receiptLines.map((line, i) => {
     const name = line.product.name || 'Product';
     const price = line.product.price || 0;
@@ -112,17 +94,11 @@ async function sendConfirmationEmail(order, receiptLines) {
   };
 
   const res = await mailjet.post('send', { version: 'v3.1' }).request(payload);
-  console.log('[Mailjet] sent – status', res.response.status);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Netlify Function entry point                                              */
-/* -------------------------------------------------------------------------- */
 exports.handler = async (event) => {
-  // Stripe sends the signature in lowercase header on Netlify
   const signature = event.headers['stripe-signature'];
 
-  // Re‑create the exact raw body Stripe signed
   const rawBody = event.isBase64Encoded
     ? Buffer.from(event.body, 'base64')
     : Buffer.from(event.body, 'utf8');
@@ -135,16 +111,12 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
-  /* ------------------------------------------------------------------------ */
-  /* Handle event types                                                      */
-  /* ------------------------------------------------------------------------ */
   if (stripeEvent.type === 'checkout.session.completed') {
-    const session = stripeEvent.data.object; // Checkout Session
+    const session = stripeEvent.data.object; 
 
     try {
       await connectToDatabase();
 
-      // 1. Mark order as paid
       const order = await Order.findOneAndUpdate(
         { 'paymentInfo.paymentId': session.id },
         {
@@ -156,13 +128,11 @@ exports.handler = async (event) => {
 
       if (!order) {
         console.warn('[StripeWebhook] Order not found for session', session.id);
-        return { statusCode: 200, body: 'no‑match' }; // Acknowledge anyway
+        return { statusCode: 200, body: 'no‑match' }; 
       }
 
-      // 2. Clear cart (best‑effort)
       await Cart.findOneAndUpdate({ userId: order.userId }, { items: [], itemCount: 0 });
 
-      // 2b. Decrease stock for each product in the order
       for (const item of order.products) {
         const productId = item.product._id || item.product;
         await Product.findByIdAndUpdate(productId, {
@@ -170,23 +140,18 @@ exports.handler = async (event) => {
         });
       }
 
-      // 3. Send confirmation e-mail
       try {
         const offers = await CategoryOffer.find({ active: true });
         const receiptLines = buildReceiptLines(order.products, offers);
         await sendConfirmationEmail(order, receiptLines);
-        console.log('[StripeWebhook] Order', order._id, 'marked paid & e‑mail sent');
       } catch (emailErr) {
         console.error('[StripeWebhook] Email/PDF error:', emailErr.message, emailErr.stack);
-        // Don't fail the whole webhook — order is already marked paid
       }
     } catch (err) {
       console.error('[StripeWebhook] Handler error', err);
-      // Let Stripe retry by returning 500 – unless you store retries elsewhere
       return { statusCode: 500, body: 'Webhook handler failure' };
     }
   }
 
-  // Return a 200 to tell Stripe the event was received successfully
   return { statusCode: 200, body: 'ok' };
 };

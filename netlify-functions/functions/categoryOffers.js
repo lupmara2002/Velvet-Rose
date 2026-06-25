@@ -1,4 +1,3 @@
-// netlify-functions/functions/categoryOffers.js
 const connectToDatabase = require('../db');
 const CategoryOffer = require('../models/CategoryOffer');
 const jwt = require('jsonwebtoken');
@@ -21,7 +20,6 @@ const handler = async (event) => {
   await connectToDatabase();
 
   switch (event.httpMethod) {
-    // Public → only active offers; admin → all offers
     case 'GET': {
       const isAdmin = !!verifyAdmin(event);
       const query = isAdmin ? {} : { active: true };
@@ -29,7 +27,6 @@ const handler = async (event) => {
       return { statusCode: 200, body: JSON.stringify(offers) };
     }
 
-    // Admin — create a new offer
     case 'POST': {
       if (!verifyAdmin(event)) {
         return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) };
@@ -46,7 +43,6 @@ const handler = async (event) => {
       return { statusCode: 200, body: JSON.stringify(offer) };
     }
 
-    // Admin — toggle active or update quantities
     case 'PUT': {
       if (!verifyAdmin(event)) {
         return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) };
@@ -64,7 +60,6 @@ const handler = async (event) => {
       return { statusCode: 200, body: JSON.stringify(updated) };
     }
 
-    // Admin — delete an offer
     case 'DELETE': {
       if (!verifyAdmin(event)) {
         return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) };

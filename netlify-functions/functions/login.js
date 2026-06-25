@@ -1,13 +1,10 @@
-// netlify-functions/login.js
 const connectToDatabase = require('../db');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const withCors = require('../withCors');
 
-// Make sure to set JWT_SECRET in your environment variables
 const JWT_SECRET = process.env.JWT_SECRET;
-// Predefined admin credentials (for demo purposes)
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -23,14 +20,9 @@ const loginHandler = async (event, context) => {
       try {
         await connectToDatabase();
         const { email, password } = JSON.parse(event.body);
-        console.log(ADMIN_EMAIL, email);
-        console.log(ADMIN_PASSWORD, password)
         
-        // Check if the login attempt is for admin
         if (email === ADMIN_EMAIL) {
-          // For admin, we use a simple plain-text check (for demo only)
           if (password === ADMIN_PASSWORD) {
-            // Create a JWT token with an admin flag
             const token = jwt.sign({ email, admin: true, userId: process.env.ADMIN_ID }, JWT_SECRET, { expiresIn: '1h' });
             return {
               statusCode: 200,
@@ -52,7 +44,6 @@ const loginHandler = async (event, context) => {
           }
         }
         
-        // For non-admin users, proceed with normal login logic
         const user = await User.findOne({ email });
         if (!user) {
           return {
@@ -71,7 +62,6 @@ const loginHandler = async (event, context) => {
           };
         }
         
-        // Create token for a normal user (admin flag is false)
         const token = jwt.sign({ email, userId: user._id.toString(), admin: false }, JWT_SECRET, { expiresIn: '1h' });
         return {
           statusCode: 200,

@@ -1,4 +1,3 @@
-// client/src/pages/Register.js
 import { useState, useMemo } from 'react';
 import {
   Container,

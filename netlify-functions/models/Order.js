@@ -19,7 +19,7 @@ const OrderSchema = new Schema({
     },
     paymentInfo: {
         paymentId: { type: String, required: true },
-        paymentMethod: { type: String, required: true } // e.g., "card" or "cash"
+        paymentMethod: { type: String, required: true } 
     }
 }, { timestamps: true });
 

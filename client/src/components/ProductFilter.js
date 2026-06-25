@@ -21,36 +21,18 @@ import {
 import axios from 'axios';
 import { toTitleCase } from '../utils/text';
 
-/**
- * ProductFilter
- *
- * Displays a sliding filter panel with an always-visible toggle line.
- * - The toggle line reads "ASCUNDE FILTRE" (Hide Filters) when open and
- *   "ARATA FILTRE" (Show Filters) when closed.
- * - The main panel slides in/out from left to right over 1 second.
- * - Filter values (category, brand, priceRange) are initialized from the
- *   `initialFilters` prop and any changes automatically trigger filtering.
- *
- * This component also fetches available brand values and the price boundaries
- * (min and max price) based on the current filters.
- *
- * The fetching of brand values when the price slider is moved is now debounced:
- * a dedicated useEffect listens only to the priceRange changes and waits 500ms
- * after the user stops moving the slider before issuing the API request.
- */
 const ProductFilter = forwardRef(function ProductFilter(props, ref) {
   const {
-    baseUrl,           // Constant
-    token,             // Constant
+    baseUrl,           
+    token,             
     onFilter,
     showFilters,
     setShowFilters,
     initialFilters = {},
-    refreshPrice,      // External trigger for refetching price boundaries.
-    refreshCategory,   // External trigger for refetching categories.
+    refreshPrice,      
+    refreshCategory,   
   } = props;
 
-  // Filter state initialization.
   const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || '');
   const [selectedBrands, setSelectedBrands] = useState(
     initialFilters.brand ? initialFilters.brand.split(',') : []
@@ -60,20 +42,16 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
       ? [Number(initialFilters.minPrice), Number(initialFilters.maxPrice)]
       : [0, 10000]
   );
-  // State for the fetched price boundaries.
   const [priceBounds, setPriceBounds] = useState([0, 700]);
 
-  // Toggles for collapsible sections.
   const [showCategorySection, setShowCategorySection] = useState(true);
   const [showPriceSection, setShowPriceSection] = useState(true);
   const [showBrandSection, setShowBrandSection] = useState(true);
 
-  // Data fetched from backend.
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [searchBrand, setSearchBrand] = useState('');
 
-  // Memoize triggerFilter so that its identity is stable.
   const triggerFilter = useCallback((cat, brandArray, priceArr) => {
     const filtersObj = {};
     if (cat) filtersObj.category = cat;
@@ -83,7 +61,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
     onFilter?.(filtersObj);
   }, [onFilter]);
 
-  // Fetch categories (re-fetch if refreshCategory changes).
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -98,8 +75,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
     fetchCategories();
   }, [baseUrl, token, refreshCategory]);
 
-  // Fetch price boundaries when selectedCategory, selectedBrands, or refreshPrice changes.
-  // Removed priceRange from dependency array to avoid infinite looping.
   useEffect(() => {
     const fetchPriceBounds = async () => {
       if (!selectedCategory) return;
@@ -114,19 +89,10 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
         if (res.data.values) {
           const newMin = Number(res.data.values.minPrice);
           const newMax = Number(res.data.values.maxPrice);
-          console.log('min, max: ', newMin, newMax);
-          // Update boundaries only if they have changed.
           if (priceBounds[0] !== newMin || priceBounds[1] !== newMax) {
             setPriceBounds([newMin, newMax]);
-            // const adjustedRange = [Math.max(priceRange[0], newMin), Math.min(priceRange[1], newMax)];
-              setPriceRange([newMin, newMax]);
-              triggerFilter(selectedCategory, selectedBrands, [newMin, newMax]);
-            // Adjust priceRange only if current priceRange is outside new boundaries.
-            // if (priceRange[0] < newMin || priceRange[1] > newMax) {
-            //   const adjustedRange = [Math.max(priceRange[0], newMin), Math.min(priceRange[1], newMax)];
-            //   setPriceRange(adjustedRange);
-            //   triggerFilter(selectedCategory, selectedBrands, adjustedRange);
-            // }
+            setPriceRange([newMin, newMax]);
+            triggerFilter(selectedCategory, selectedBrands, [newMin, newMax]);
           }
         }
       } catch (error) {
@@ -134,11 +100,8 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
       }
     };
     fetchPriceBounds();
-    // eslint-disable-next-line
   }, [baseUrl, token, selectedCategory, refreshPrice]);
 
-  // Debounced fetching of brand values when priceRange changes.
-  // eslint-disable-next-line
   useEffect(() => {
     const debounceHandler = setTimeout(() => {
       if (!selectedCategory) {
@@ -159,7 +122,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
     return () => clearTimeout(debounceHandler);
   }, [priceRange, selectedCategory, baseUrl, token]);
 
-  // Debounced effect for triggering filter updates.
   useEffect(() => {
     const handler = setTimeout(() => {
       triggerFilter(selectedCategory, selectedBrands, priceRange);
@@ -167,7 +129,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
     return () => clearTimeout(handler);
   }, [selectedCategory, selectedBrands, priceRange, triggerFilter]);
 
-  // Handlers for selections.
   const handleCategoryClick = (cat) => {
     setSelectedCategory(cat);
     setSelectedBrands([]);
@@ -188,7 +149,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
     setPriceRange(newValue);
   };
 
-  // Filter brands based on the search input.
   const filteredBrands = brands.filter((brandObj) =>
     toTitleCase(brandObj._id).toLowerCase().includes(searchBrand.toLowerCase())
   );
@@ -198,12 +158,8 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
       sx={{
         width: showFilters ? '300px' : '200px',
         background: 'white',
-        // borderRight
-        // mr: 1,
-        // mt: 1
       }}
     >
-      {/* Always-visible toggle line */}
       <Box
         sx={{
           display: 'flex',
@@ -229,10 +185,8 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
         {showFilters ? <ArrowLeft /> : <ArrowRight />}
       </Box>
 
-      {/* Slide transition for the main filter panel */}
       <Slide in={showFilters} direction="right" mountOnEnter unmountOnExit timeout={1000}>
         <Box ref={ref} sx={{ p: 2 }}>
-          {/* CATEGORY SECTION */}
           <Box sx={{ mb: 1 }}>
             <Box
               sx={{
@@ -290,7 +244,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
             </Collapse>
           </Box>
 
-          {/* PRICE SECTION (visible if a category is selected) */}
           {selectedCategory && (
             <Box sx={{ mb: 1 }}>
               <Box
@@ -331,7 +284,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
             </Box>
           )}
 
-          {/* BRAND SECTION (visible if a category is selected) */}
           {selectedCategory && (
             <Box sx={{ mb: 1 }}>
               <Box
@@ -413,7 +365,6 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
               </Collapse>
             </Box>
           )}
-          {/* No explicit "Apply" button – filter updates occur automatically */}
         </Box>
       </Slide>
     </Box>

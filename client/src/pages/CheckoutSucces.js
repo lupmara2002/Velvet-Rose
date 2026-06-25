@@ -1,4 +1,3 @@
-// src/pages/CheckoutSuccess.js
 import React from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

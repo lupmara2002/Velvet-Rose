@@ -4,7 +4,6 @@ const withCors = require('../withCors');
 require('dotenv').config();
 
 const handler = async (event, context) => {
-  // Extract query parameters.
   const queryParams = event.queryStringParameters || {};
   const { field } = queryParams;
   if (!field) {
@@ -39,20 +38,17 @@ const handler = async (event, context) => {
         { $sort: { _id: 1 } }
       ]);
     } else if (field === "price") {
-      // For price, include filters for category and brand if provided.
       const match = {};
       if (queryParams.category) {
         match.category = queryParams.category;
       }
       if (queryParams.brand) {
-        // If multiple brands are selected (comma-separated), split and use $in.
         if (queryParams.brand.indexOf(',') !== -1) {
           match.brand = { $in: queryParams.brand.split(',').map(b => b.trim()) };
         } else {
           match.brand = queryParams.brand;
         }
       }
-      // Aggregate to find the minimum and maximum price in the matching products.
       values = await Product.aggregate([
         { $match: match },
         {
@@ -64,7 +60,6 @@ const handler = async (event, context) => {
         }
       ]);
       if (values && values.length > 0) {
-        // Return an object with minPrice and maxPrice.
         values = values[0];
       } else {
         values = { minPrice: 0, maxPrice: 0 };

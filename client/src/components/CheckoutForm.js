@@ -9,7 +9,6 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ShippingAddressForm from './ShippingAddressForm';
-// import PaymentMethodForm from './PaymentMethodForm';
 
 const CheckoutForm = ({ open, onClose, onCheckout }) => {
     const [shippingAddress, setShippingAddress] = useState({});

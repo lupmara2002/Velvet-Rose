@@ -1,28 +1,15 @@
-/**
- * generateInvoicePdf.js
- * ---------------------
- * Builds a professional-looking invoice / bill PDF using PDFKit and returns
- * the result as a Buffer (suitable for e-mail attachment).
- *
- * @param {Object} order – Mongoose Order document (products should be populated)
- * @returns {Promise<Buffer>}
- */
-
 const PDFDocument = require('pdfkit');
 const path = require('path');
 
-/* ---- font paths (Roboto supports Romanian diacritics) ---- */
 const FONT_REGULAR = path.join(__dirname, 'functions', 'fonts', 'Roboto-Regular.ttf');
 const FONT_BOLD    = path.join(__dirname, 'functions', 'fonts', 'Roboto-Bold.ttf');
 
-/* ---- colour palette (matches Velvet Rose branding) ---- */
 const BRAND      = '#8C5E6B';
 const DARK       = '#2D2A2E';
 const GREY       = '#6B6369';
 const LIGHT_BG   = '#FBF8F6';
 const LINE_COLOR = '#E8DDD9';
 
-/* ---- helper: collect PDF stream into a Buffer ---- */
 function docToBuffer(doc) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -32,7 +19,6 @@ function docToBuffer(doc) {
   });
 }
 
-/* ---- draw a horizontal rule ---- */
 function hr(doc, y, width) {
   doc
     .strokeColor(LINE_COLOR)
@@ -42,20 +28,15 @@ function hr(doc, y, width) {
     .stroke();
 }
 
-/* ---- main export ---- */
 async function generateInvoicePdf(order, receiptLines) {
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
   const bufferPromise = docToBuffer(doc);
 
-  /* Register Roboto fonts (supports Romanian diacritics: ă, â, î, ș, ț) */
   doc.registerFont('Roboto', FONT_REGULAR);
   doc.registerFont('Roboto-Bold', FONT_BOLD);
 
-  const pageWidth = doc.page.width - 100; // 50 margin each side
+  const pageWidth = doc.page.width - 100; 
 
-  /* ==================================================================
-     HEADER
-     ================================================================== */
   doc
     .fillColor(BRAND)
     .fontSize(22)
@@ -69,16 +50,12 @@ async function generateInvoicePdf(order, receiptLines) {
     .text('maracosmetics12@gmail.com', 50, 76)
     .text('https://mara-cosmetics.netlify.app', 50, 88);
 
-  /* "INVOICE" label – right-aligned */
   doc
     .fillColor(BRAND)
     .fontSize(28)
     .font('Roboto-Bold')
     .text('INVOICE', 350, 50, { width: pageWidth - 300, align: 'right' });
 
-  /* ==================================================================
-     ORDER META
-     ================================================================== */
   const metaTop = 120;
 
   doc.fillColor(DARK).fontSize(10).font('Roboto-Bold');
@@ -96,7 +73,6 @@ async function generateInvoicePdf(order, receiptLines) {
   doc.font('Roboto').fillColor(GREY);
   doc.text('Paid', 130, metaTop + 32);
 
-  /* Shipping address block – right side */
   const addr = order.shippingAddress || {};
   doc.font('Roboto-Bold').fontSize(10).fillColor(DARK);
   doc.text('Ship To:', 350, metaTop);
@@ -106,12 +82,8 @@ async function generateInvoicePdf(order, receiptLines) {
   doc.text(`${addr.city || ''}, ${addr.state || ''} ${addr.zip || ''}`, 350, metaTop + 40);
   doc.text(addr.country || '', 350, metaTop + 52);
 
-  /* ==================================================================
-     TABLE HEADER
-     ================================================================== */
   const tableTop = metaTop + 80;
 
-  // Column positions
   const col = {
     num:   50,
     name:  80,
@@ -120,7 +92,6 @@ async function generateInvoicePdf(order, receiptLines) {
     total: 470,
   };
 
-  // Header background
   doc
     .rect(50, tableTop, pageWidth, 22)
     .fill(BRAND);
@@ -132,9 +103,6 @@ async function generateInvoicePdf(order, receiptLines) {
   doc.text('Price',    col.price+ 4, tableTop + 6, { width: 60 });
   doc.text('Total',    col.total+ 4, tableTop + 6, { width: 70 });
 
-  /* ==================================================================
-     TABLE ROWS
-     ================================================================== */
   let y = tableTop + 26;
   const lines = receiptLines || (order.products || []).map((item) => ({
     product: item.product,
@@ -162,9 +130,6 @@ async function generateInvoicePdf(order, receiptLines) {
     y += 22;
   });
 
-  /* ==================================================================
-     TOTALS
-     ================================================================== */
   y += 6;
   hr(doc, y, pageWidth);
   y += 12;
@@ -174,14 +139,12 @@ async function generateInvoicePdf(order, receiptLines) {
     return sum + price * (line.quantity || 1);
   }, 0);
 
-  // Subtotal
   doc.font('Roboto').fontSize(10).fillColor(GREY);
   doc.text('Subtotal:', col.price - 20, y, { width: 80, align: 'right' });
   doc.text(`${subtotal.toFixed(2)} lei`, col.total + 4, y, { width: 80 });
 
   y += 18;
 
-  // Shipping
   doc.text('Shipping:', col.price - 20, y, { width: 80, align: 'right' });
   doc.text('Free', col.total + 4, y, { width: 80 });
 
@@ -189,14 +152,10 @@ async function generateInvoicePdf(order, receiptLines) {
   hr(doc, y, pageWidth);
   y += 10;
 
-  // Grand Total
   doc.font('Roboto-Bold').fontSize(13).fillColor(BRAND);
   doc.text('Total:', col.price - 20, y, { width: 80, align: 'right' });
   doc.text(`${order.totalAmount.toFixed(2)} lei`, col.total + 4, y, { width: 100 });
 
-  /* ==================================================================
-     FOOTER
-     ================================================================== */
   y += 50;
   hr(doc, y, pageWidth);
   y += 14;
@@ -207,7 +166,6 @@ async function generateInvoicePdf(order, receiptLines) {
     { width: pageWidth, align: 'center' }
   );
 
-  /* ---- finalize ---- */
   doc.end();
   return bufferPromise;
 }

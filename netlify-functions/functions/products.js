@@ -1,4 +1,3 @@
-// netlify-functions/products.js
 const connectToDatabase = require('../db');
 const Product = require('../models/Product');
 const jwt = require('jsonwebtoken');
@@ -17,7 +16,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const multipart = require('lambda-multipart-parser');
 
 const handler = async (event, context) => {
-  // Verify the admin token from the Authorization header
   const authHeader = event.headers.authorization || event.headers.Authorization;
   if (!authHeader && ['PUT', 'POST', 'DELETE'].includes(event.httpMethod)) {
     return {
@@ -44,7 +42,6 @@ const handler = async (event, context) => {
     }
   }
 
-  // Ensure database connection is established
   try {
     await connectToDatabase();
   } catch (dbError) {
@@ -55,7 +52,6 @@ const handler = async (event, context) => {
     };
   }
 
-  // Process the request based on HTTP method
   try {
     switch (event.httpMethod) {
       case 'GET': {
@@ -83,13 +79,11 @@ const handler = async (event, context) => {
           }
         });
 
-        // Name search (case-insensitive partial match)
         if (filters.search) {
           filters.name = { $regex: filters.search, $options: 'i' };
           delete filters.search;
         }
 
-        // Apply sorting
         let sortObj = {};
         if (filters.sort === 'priceAsc') {
           sortObj.price = 1;
@@ -111,24 +105,20 @@ const handler = async (event, context) => {
       }
 
       case 'POST': {
-        // Parse the multipart form data using lambda-multipart-parser
         const result = await multipart.parse(event);
 
-        // Ensure at least one file was uploaded
         if (!result.files || result.files.length === 0) {
           return {
             statusCode: 400,
             body: JSON.stringify({ error: 'No files uploaded' }),
           };
         }
-        // Enforce a maximum of 5 images
         if (result.files.length > 5) {
           return {
             statusCode: 400,
             body: JSON.stringify({ error: 'Maximum 5 images allowed' }),
           };
         }
-        // Upload each file to Cloudinary and collect the secure URLs
         const imageUrls = [];
         for (const file of result.files) {
           const fileBase64 = file.content.toString('base64');
@@ -136,7 +126,6 @@ const handler = async (event, context) => {
           const uploadResult = await cloudinary.uploader.upload(dataUri);
           imageUrls.push(uploadResult.secure_url);
         }
-        // Extract text fields from the parsed result
         const { name, price, description, category, brand, stock } = result;
         const newProduct = new Product({
           name,
@@ -155,10 +144,8 @@ const handler = async (event, context) => {
       }
 
       case 'PUT': {
-        // Parse the multipart form data using lambda-multipart-parser
         const result = await multipart.parse(event);
 
-        // Extract text fields; expected fields: id, name, price, description, existingImages
         const { id, name, price, description, existingImages, category, brand, stock } = result;
         if (!id) {
           return {
@@ -167,21 +154,17 @@ const handler = async (event, context) => {
           };
         }
 
-        // Determine the array of existing image URLs
         let existingImagesArray = [];
         if (existingImages) {
           try {
-            // existingImages may be sent as a JSON string
             existingImagesArray = typeof existingImages === 'string' ? JSON.parse(existingImages) : existingImages;
           } catch (err) {
             existingImagesArray = [];
           }
         }
 
-        // Process new image files (if any)
         const newImageUrls = [];
         if (result.files && result.files.length > 0) {
-          // Enforce a maximum of 5 images total
           if (existingImagesArray.length + result.files.length > 5) {
             return {
               statusCode: 400,
@@ -196,10 +179,8 @@ const handler = async (event, context) => {
           }
         }
 
-        // Merge existing images with new uploads
         const mergedImages = [...existingImagesArray, ...newImageUrls];
 
-        // Build the update data object with text fields and merged images array
         const updateData = {
           name,
           price,
@@ -225,7 +206,6 @@ const handler = async (event, context) => {
       }
 
       case 'DELETE': {
-        // Delete a product; expect product id as query parameter: /?id=...
         const id = event.queryStringParameters && event.queryStringParameters.id;
         if (!id) {
           return {

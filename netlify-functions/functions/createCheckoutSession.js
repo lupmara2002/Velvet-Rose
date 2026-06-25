@@ -1,4 +1,3 @@
-/* netlify/functions/createCheckoutSession.js */
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const withCors = require('../withCors');
 const connectToDatabase = require('../db');
@@ -7,11 +6,6 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-/* ------------------------------------------------------------------
-   Create a Stripe Checkout session and save a *pending* order.
-   E‑mail sending & cart clearing now happen in stripeWebhook.js after
-   we receive the `checkout.session.completed` event.
-   ------------------------------------------------------------------ */
 exports.handler = withCors(async (event) => {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -28,8 +22,6 @@ exports.handler = withCors(async (event) => {
     if (!lineItems || !successUrl || !cancelUrl || !orderData) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
     }
-
-    /* 1. Create Stripe Checkout session */
     let session;
     try {
         session = await stripe.checkout.sessions.create({
@@ -44,7 +36,6 @@ exports.handler = withCors(async (event) => {
         return { statusCode: 500, body: JSON.stringify({ error: 'Stripe error' }) };
     }
 
-    /* 2. Connect to MongoDB */
     try {
         await connectToDatabase();
     } catch (err) {
@@ -52,7 +43,6 @@ exports.handler = withCors(async (event) => {
         return { statusCode: 500, body: JSON.stringify({ error: 'Database connection error' }) };
     }
 
-    /* 3. Decode JWT */
     const authHeader = event.headers.authorization || event.headers.Authorization || '';
     const tokenAuth = authHeader.split(' ')[1];
     let decoded;
@@ -62,7 +52,6 @@ exports.handler = withCors(async (event) => {
         return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) };
     }
 
-    /* 4. Save order with status "pending" */
     const newOrder = new Order({
         userId: decoded.userId,
         userEmail: orderData.userEmail,
@@ -71,7 +60,7 @@ exports.handler = withCors(async (event) => {
         shippingAddress: orderData.shippingAddress,
         status: 'pending',
         paymentInfo: {
-            paymentId: session.id, // we'll match this in the webhook
+            paymentId: session.id, 
             paymentMethod: orderData.paymentInfo.paymentMethod,
             paymentStatus: 'pending',
         },
@@ -84,7 +73,6 @@ exports.handler = withCors(async (event) => {
         return { statusCode: 500, body: JSON.stringify({ error: 'Order save failed' }) };
     }
 
-    /* 5. Respond with the Checkout URL */
     return {
         statusCode: 200,
         body: JSON.stringify({

@@ -16,7 +16,6 @@ export const OffersProvider = ({ children }) => {
   return <OffersContext.Provider value={offers}>{children}</OffersContext.Provider>;
 };
 
-// Returns the active offer for a given category string, or null
 export const useOfferForCategory = (category) => {
   const offers = useContext(OffersContext);
   return offers.find((o) => o.active && o.category === category) ?? null;

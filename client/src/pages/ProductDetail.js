@@ -1,4 +1,3 @@
-// src/pages/ProductDetail.js
 import { useState, useEffect, useContext } from 'react';
 import { Container, Card, CardMedia, CardContent, Typography, Button, Box, IconButton, Chip } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -110,7 +109,6 @@ const ProductDetail = () => {
           >
             {product.price} lei
           </Typography>
-          {/* Stock indicator */}
           <Typography
             variant="body2"
             sx={{

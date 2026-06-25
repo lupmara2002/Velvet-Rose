@@ -1,4 +1,3 @@
-// client/src/pages/AdminDashboard.js
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
@@ -44,11 +43,9 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
-  // State for filter usage.
   const [filters, setFilters] = useState({});
   const [showFilters, setShowFilters] = useState(false);
 
-  // Search state with debounce
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const debounceTimer = useRef(null);
@@ -60,7 +57,6 @@ const AdminDashboard = () => {
     return () => clearTimeout(debounceTimer.current);
   }, [searchInput]);
 
-  // Merge debounced search into filters whenever either changes
   useEffect(() => {
     setFilters(prev => {
       const next = { ...prev, search: debouncedSearch };
@@ -69,11 +65,9 @@ const AdminDashboard = () => {
     });
   }, [debouncedSearch]);
 
-  // State to force re-fetch of products.
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [refreshPrice, setRefreshPrice] = useState(0);
 
-  // Product management state.
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
@@ -84,22 +78,19 @@ const AdminDashboard = () => {
     brand: '',
     category: '',
     stock: '',
-    images: [] // Array of File objects or image URL strings.
+    images: [] 
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  // State for deletion confirmation modal.
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
 
-  // New states for Category dropdown in the Add/Edit dialog.
   const [availableCategories, setAvailableCategories] = useState([]);
   const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
   const [categoryRefresh, setCategoryRefresh] = useState(0);
 
   const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
 
-  // ── Category Offers state ──────────────────────────────────────────────
   const [offers, setOffers] = useState([]);
   const [offerDialogOpen, setOfferDialogOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
@@ -117,7 +108,7 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => { fetchOffers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchOffers(); }, []); 
 
   const handleOpenOfferDialog = (offer = null) => {
     setEditingOffer(offer);
@@ -175,7 +166,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Authentication and admin check.
   useEffect(() => {
     if (!token) {
       navigate('/login');
@@ -205,8 +195,6 @@ const AdminDashboard = () => {
     fetchCategories();
   }, [baseUrl, token, categoryRefresh]);
 
-  // Prevent repeated updates by checking if new filters differ from current ones.
-  // Preserve the current search term when merging filters from ProductFilter.
   const handleFilterUpdate = (newFilters) => {
     setFilters(prev => {
       const merged = { ...newFilters };
@@ -222,7 +210,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // Open the dialog for creating a new product.
   const handleDialogOpen = () => {
     setEditingProduct(null);
     setFormData({
@@ -237,17 +224,14 @@ const AdminDashboard = () => {
     setDialogOpen(true);
   };
 
-  // Close the dialog.
   const handleDialogClose = () => {
     setDialogOpen(false);
   };
 
-  // Handle changes in form fields.
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle file uploads.
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     const alreadyUploaded = formData.images ? formData.images.length : 0;
@@ -261,7 +245,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // Save product: create new or update existing.
   const handleSaveProduct = async () => {
     if (isSaving) return;
     setIsSaving(true);
@@ -277,7 +260,6 @@ const AdminDashboard = () => {
       formDataToSend.append('id', formData.id);
     }
 
-    // Separate new files from existing image URLs.
     const newFiles = [];
     const existingUrls = [];
     formData.images.forEach((item) => {
@@ -309,12 +291,10 @@ const AdminDashboard = () => {
         });
       }
       setDialogOpen(false);
-      // Force InfiniteProductList re-mount.
       setRefreshCounter((prev) => prev + 1);
       setRefreshPrice((prev) => prev + 1);
       setCategoryRefresh((prev) => prev + 1);
       setIsAddingNewCategory(false);
-      console.log('refreshed counter');
     } catch (error) {
       console.error('Error saving product:', error);
     } finally {
@@ -322,7 +302,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Open dialog with product data for editing.
   const handleEditProduct = (product) => {
     setEditingProduct(product);
     setFormData({
@@ -338,20 +317,17 @@ const AdminDashboard = () => {
     setDialogOpen(true);
   };
 
-  // Open deletion confirmation modal.
 
   const handleOpenDeleteDialog = (product) => {
     setDeletingProduct(product);
     setDeleteDialogOpen(true);
   };
 
-  // Close deletion confirmation modal.
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setDeletingProduct(null);
   };
 
-  // Confirm deletion.
   const handleConfirmDelete = async () => {
     if (deletingProduct) {
       try {
@@ -359,7 +335,6 @@ const AdminDashboard = () => {
           params: { id: deletingProduct._id },
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Force InfiniteProductList re-mount.
         setRefreshCounter((prev) => prev + 1);
         setCategoryRefresh((prev) => prev + 1);
         setRefreshPrice((prev) => prev + 1);
@@ -378,7 +353,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // Render function for InfiniteProductList: table view.
   const renderTable = (products, lastRef) => (
     <Table>
       <TableHead>
@@ -457,7 +431,6 @@ const AdminDashboard = () => {
 
   return (
     <Container maxWidth={false} sx={{ mt: 4, maxWidth: 'none' }}>
-      {/* Header Section */}
       <Paper
         elevation={0}
         sx={{
@@ -530,7 +503,6 @@ const AdminDashboard = () => {
         </Box>
       </Paper>
 
-      {/* ── Category Offers Section ─────────────────────────────────── */}
       <Paper
         elevation={0}
         sx={{
@@ -645,9 +617,7 @@ const AdminDashboard = () => {
         )}
       </Paper>
 
-      {/* Main Content: Filter panel on the left, Table on the right */}
       <Box sx={{ position: 'relative', mt: 3 }}>
-        {/* Filter Panel: absolutely positioned on the left */}
         <Box sx={{ position: 'absolute', top: 0, left: 0, width: '300px', zIndex: 1, ml: '16px' }}>
           <ProductFilter
             baseUrl={baseUrl}
@@ -662,7 +632,6 @@ const AdminDashboard = () => {
           />
         </Box>
 
-        {/* Product Table: shifts right when filter panel is open */}
         <Box sx={{ transition: 'margin-left 1s', marginLeft: showFilters ? '320px' : '0px' }}>
           <Paper
             elevation={0}
@@ -684,7 +653,6 @@ const AdminDashboard = () => {
         </Box>
       </Box>
 
-      {/* Dialog for Adding/Editing a Product */}
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
         <DialogContent>
@@ -729,7 +697,6 @@ const AdminDashboard = () => {
             value={formData.brand}
             onChange={handleFormChange}
           />
-          {/* Category Dropdown */}
           <FormControl fullWidth margin="dense" variant="outlined">
             <InputLabel id="category-select-label">Category</InputLabel>
             <Select
@@ -833,7 +800,6 @@ const AdminDashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Deletion Confirmation Modal */}
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -850,7 +816,6 @@ const AdminDashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Add / Edit Offer Dialog */}
       <Dialog open={offerDialogOpen} onClose={() => setOfferDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}>
           {editingOffer ? 'Edit Offer' : 'Add Offer'}
@@ -919,7 +884,6 @@ const AdminDashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Delete Offer Confirmation */}
       <Dialog open={!!offerDeleteId} onClose={() => setOfferDeleteId(null)}>
         <DialogTitle sx={{ fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}>Delete Offer</DialogTitle>
         <DialogContent>

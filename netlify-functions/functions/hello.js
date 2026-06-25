@@ -1,11 +1,8 @@
-// netlify-functions/hello.js
 const connectToDatabase = require('../db');
 
 exports.handler = async (event, context) => {
   try {
-    await connectToDatabase(); // Ensure the DB connection is established
-
-    // You can now perform database operations here, e.g., querying a collection
+    await connectToDatabase(); 
 
     return {
       statusCode: 200,

@@ -1,70 +1,59 @@
-// src/components/ShippingAddressForm.js
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Country, State, City } from 'country-state-city';
 
 const ShippingAddressForm = ({ shippingAddress, setShippingAddress }) => {
-  const [countries, setCountries] = useState([]); // array of country objects
-  const [states, setStates] = useState([]);         // array of state objects
-  const [cities, setCities] = useState([]);         // array of city objects
+  const [countries, setCountries] = useState([]); 
+  const [states, setStates] = useState([]);        
+  const [cities, setCities] = useState([]);         
 
-  // Load all countries on mount
   useEffect(() => {
     const allCountries = Country.getAllCountries();
-    // Optionally sort alphabetically by name:
     const sortedCountries = allCountries.sort((a, b) =>
       a.name.localeCompare(b.name)
     );
     setCountries(sortedCountries);
   }, []);
 
-  // When shippingAddress.country changes, load the states for that country.
   useEffect(() => {
     if (!shippingAddress.country) {
       setStates([]);
       return;
     }
-    const stateList = State.getStatesOfCountry(shippingAddress.country); // returns array of state objects
-    // Optionally sort the states by name:
+    const stateList = State.getStatesOfCountry(shippingAddress.country); 
     setStates(stateList.sort((a, b) => a.name.localeCompare(b.name)));
   }, [shippingAddress.country]);
 
-  // When shippingAddress.state changes, load the cities for that state.
   useEffect(() => {
     if (!shippingAddress.country || !shippingAddress.state) {
       setCities([]);
       return;
     }
-    const citiesList = City.getCitiesOfState(shippingAddress.country, shippingAddress.state); // array of city objects
-    // Optionally sort the cities by name:
+    const citiesList = City.getCitiesOfState(shippingAddress.country, shippingAddress.state); 
     setCities(citiesList.sort((a, b) => a.name.localeCompare(b.name)));
   }, [shippingAddress.country, shippingAddress.state]);
 
-  // Handler for simple text fields
   const handleShippingChange = (e) => {
     setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value });
   };
 
-  // When selecting a country, set it (using its ISO code) and reset state/city
   const handleCountryChange = (e) => {
     setShippingAddress({
       ...shippingAddress,
-      country: e.target.value,  // e.g., "US" or "RO"
+      country: e.target.value,  
       state: '',
       city: ''
     });
   };
 
-  // When selecting a state, set it (using its ISO code) and reset city
   const handleStateChange = (e) => {
     setShippingAddress({
       ...shippingAddress,
-      state: e.target.value, // e.g., "CA"
+      state: e.target.value, 
       city: ''
     });
   };
 
-  // When selecting a city, save its name (or id if available)
   const handleCityChange = (e) => {
     setShippingAddress({
       ...shippingAddress,
