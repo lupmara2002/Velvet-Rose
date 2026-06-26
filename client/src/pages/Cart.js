@@ -108,7 +108,7 @@ const Cart = () => {
 
       const frontendBase = process.env.REACT_APP_ENVIRONMENT === 'dev'
         ? 'http://localhost:8888'
-        : 'https://mara-cosmetics.netlify.app';
+        : 'zingy-brioche-a5e544.netlify.app';
 
       const response = await axios.post(
         `${baseUrl}/createCheckoutSession`,

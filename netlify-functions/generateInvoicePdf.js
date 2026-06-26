@@ -48,8 +48,6 @@ async function generateInvoicePdf(order, receiptLines) {
     .fontSize(9)
     .font('Roboto')
     .text('maracosmetics12@gmail.com', 50, 76)
-    .text('https://mara-cosmetics.netlify.app', 50, 88);
-
   doc
     .fillColor(BRAND)
     .fontSize(28)
