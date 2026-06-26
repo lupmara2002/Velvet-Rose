@@ -100,6 +100,7 @@ const ProductFilter = forwardRef(function ProductFilter(props, ref) {
       }
     };
     fetchPriceBounds();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseUrl, token, selectedCategory, refreshPrice]);
 
   useEffect(() => {

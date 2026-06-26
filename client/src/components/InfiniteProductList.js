@@ -42,10 +42,12 @@ const InfiniteProductList = ({ baseUrl, token, filters = {}, renderProducts }) =
       loadingRef.current = false;
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseUrl, token, filtersKey]);
 
   useEffect(() => {
     fetchProducts(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

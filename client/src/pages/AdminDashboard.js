@@ -107,7 +107,7 @@ const AdminDashboard = () => {
       console.error('Error fetching offers:', err);
     }
   };
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchOffers(); }, []); 
 
   const handleOpenOfferDialog = (offer = null) => {
